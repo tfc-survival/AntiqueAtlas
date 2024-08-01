@@ -7,7 +7,6 @@ import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -66,7 +65,7 @@ public class RecordingHandler {
                 return;
             }
 
-            int activeItem = getActiveItem(player);
+            int activeItem = ItemAriadneThread.getActiveItem(player);
             if (activeItem == -2) {
                 recording = false;
                 return;
@@ -106,25 +105,6 @@ public class RecordingHandler {
         return new Vec3d(player.motionX, player.motionY, player.motionZ).normalize();
     }
 
-    public static int getActiveItem(EntityPlayer player) {
-        if (ItemAriadneThread.isActive(player.getHeldItemMainhand()))
-            return player.inventory.currentItem;
-
-        if (ItemAriadneThread.isActive(player.getHeldItemOffhand()))
-            return 40;
-
-        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-            if (ItemAriadneThread.isActive(player.inventory.getStackInSlot(i))) {
-                return i;
-            }
-        }
-
-        if (ItemAriadneThread.isActive(player.inventory.getItemStack()))
-            return -1;
-
-        return -2;
-    }
-
     public static boolean addSegment() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         BlockPos pos = ItemAriadneThread.posOfPlayer(player);
@@ -156,7 +136,7 @@ public class RecordingHandler {
         if (sendQueue.isEmpty())
             return;
 
-        int activeItem = getActiveItem(Minecraft.getMinecraft().player);
+        int activeItem = ItemAriadneThread.getActiveItem(Minecraft.getMinecraft().player);
         if (activeItem >= -1) {
             PacketDispatcher.sendToServer(new FlushAriadneThreadPoses(activeItem, sendQueue));
             sendQueue = new ArrayList<>();

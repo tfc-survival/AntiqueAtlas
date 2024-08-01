@@ -92,7 +92,7 @@ public class RenderHandler {
 
     private static ItemStack getActiveItemStack() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        int slot = RecordingHandler.getActiveItem(player);
+        int slot = ItemAriadneThread.getActiveItem(player);
         if (slot == -1)
             return player.inventory.getItemStack();
 

@@ -37,28 +37,34 @@ public class ItemAriadneThread extends Item {
     public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer playerIn, EnumHand hand) {
         ItemStack heldItem = playerIn.getHeldItem(hand);
 
+        if (!playerIn.capabilities.isCreativeMode)
+            playerIn.getCooldownTracker().setCooldown(this, 20);
+
         if (playerIn.isSneaking()) {
-            if (world.isRemote)
-                RecordingHandler.stop();
+            if (getActiveItem(playerIn) == playerIn.inventory.currentItem) {
+                if (world.isRemote)
+                    RecordingHandler.stop();
 
-            markActive(heldItem, false, playerIn);
+                markActive(heldItem, false, playerIn);
 
-            if (!playerIn.capabilities.isCreativeMode)
-                playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
-
-        } else {
-            if (heldItem.getCount() == 1) {
-                markActive(heldItem, true, playerIn);
-            } else {
-                ItemStack r = heldItem.copy();
-                r.setCount(1);
-                markActive(r, true, playerIn);
-                if (playerIn.addItemStackToInventory(r)) {
-                    heldItem.shrink(1);
-                }
+                if (!playerIn.capabilities.isCreativeMode)
+                    playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
             }
-            if (world.isRemote)
-                RecordingHandler.start(heldItem);
+        } else {
+            if (getActiveItem(playerIn) == -2) {
+                if (heldItem.getCount() == 1) {
+                    markActive(heldItem, true, playerIn);
+                } else {
+                    ItemStack r = heldItem.copy();
+                    r.setCount(1);
+                    markActive(r, true, playerIn);
+                    if (playerIn.addItemStackToInventory(r)) {
+                        heldItem.shrink(1);
+                    }
+                }
+                if (world.isRemote)
+                    RecordingHandler.start(heldItem);
+            }
         }
 
         return new ActionResult<>(EnumActionResult.SUCCESS, heldItem);
@@ -119,6 +125,25 @@ public class ItemAriadneThread extends Item {
 
     public void setColor(ItemStack stack, int color) {
         stack.getOrCreateSubCompound(displayKey).setInteger(colorKey, color);
+    }
+
+    public static int getActiveItem(EntityPlayer player) {
+        if (isActive(player.getHeldItemMainhand()))
+            return player.inventory.currentItem;
+
+        if (isActive(player.getHeldItemOffhand()))
+            return 40;
+
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            if (isActive(player.inventory.getStackInSlot(i))) {
+                return i;
+            }
+        }
+
+        if (isActive(player.inventory.getItemStack()))
+            return -1;
+
+        return -2;
     }
 
     private static String startKey = "start";
