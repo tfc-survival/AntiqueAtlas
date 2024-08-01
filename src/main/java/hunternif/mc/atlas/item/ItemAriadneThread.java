@@ -40,8 +40,11 @@ public class ItemAriadneThread extends Item {
         if (!playerIn.capabilities.isCreativeMode)
             playerIn.getCooldownTracker().setCooldown(this, 20);
 
+        int activeItem = getActiveItem(playerIn);
         if (playerIn.isSneaking()) {
-            if (getActiveItem(playerIn) == playerIn.inventory.currentItem) {
+            if (hand == EnumHand.MAIN_HAND && activeItem == playerIn.inventory.currentItem ||
+                    hand == EnumHand.OFF_HAND && activeItem == 45) {
+
                 if (world.isRemote)
                     RecordingHandler.stop();
 
@@ -51,7 +54,7 @@ public class ItemAriadneThread extends Item {
                     playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
             }
         } else {
-            if (getActiveItem(playerIn) == -2) {
+            if (activeItem == -2) {
                 if (heldItem.getCount() == 1) {
                     markActive(heldItem, true, playerIn);
                 } else {
