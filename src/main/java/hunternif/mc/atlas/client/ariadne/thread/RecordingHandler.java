@@ -54,6 +54,12 @@ public class RecordingHandler {
         }
     }
 
+    public static void failStop() {
+        sendQueue = new ArrayList<>();
+        RenderHandler.clear();
+        recording = false;
+    }
+
 
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
@@ -61,13 +67,13 @@ public class RecordingHandler {
         if (recording) {
             EntityPlayerSP player = Minecraft.getMinecraft().player;
             if (player == null) {
-                recording = false;
+                failStop();
                 return;
             }
 
             int activeItem = ItemAriadneThread.getActiveItem(player);
             if (activeItem == -2) {
-                recording = false;
+                failStop();
                 return;
             }
 
