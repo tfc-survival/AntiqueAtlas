@@ -43,7 +43,7 @@ public class ItemAriadneThread extends Item {
         int activeItem = getActiveItem(playerIn);
         if (playerIn.isSneaking()) {
             if (hand == EnumHand.MAIN_HAND && activeItem == playerIn.inventory.currentItem ||
-                    hand == EnumHand.OFF_HAND && activeItem == 45) {
+                    hand == EnumHand.OFF_HAND && activeItem == 40) {
 
                 if (world.isRemote)
                     RecordingHandler.stop();
