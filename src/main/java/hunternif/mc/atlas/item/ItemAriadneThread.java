@@ -40,10 +40,8 @@ public class ItemAriadneThread extends Item {
         if (!playerIn.capabilities.isCreativeMode)
             playerIn.getCooldownTracker().setCooldown(this, 20);
 
-        int activeItem = getActiveItem(playerIn);
         if (playerIn.isSneaking()) {
-            if (hand == EnumHand.MAIN_HAND && activeItem == playerIn.inventory.currentItem ||
-                    hand == EnumHand.OFF_HAND && activeItem == 40) {
+            if (isActiveServer(heldItem)) {
 
                 if (world.isRemote)
                     RecordingHandler.stop();
@@ -54,7 +52,7 @@ public class ItemAriadneThread extends Item {
                     playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
             }
         } else {
-            if (activeItem == -2) {
+            if (haveNoActiveItemServer(playerIn)) {
                 if (heldItem.getCount() == 1) {
                     markActive(heldItem, true, playerIn);
                 } else {
@@ -100,7 +98,7 @@ public class ItemAriadneThread extends Item {
 
     @Override
     public boolean hasEffect(ItemStack stack) {
-        return isActive(stack);
+        return isActiveClient(stack);
     }
 
     private String displayKey = "display";
@@ -130,31 +128,46 @@ public class ItemAriadneThread extends Item {
         stack.getOrCreateSubCompound(displayKey).setInteger(colorKey, color);
     }
 
-    public static int getActiveItem(EntityPlayer player) {
-        if (isActive(player.getHeldItemMainhand()))
+    public static int getActiveItemClient(EntityPlayer player) {
+        if (isActiveClient(player.getHeldItemMainhand()))
             return player.inventory.currentItem;
 
-        if (isActive(player.getHeldItemOffhand()))
+        if (isActiveClient(player.getHeldItemOffhand()))
             return 40;
 
         for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-            if (isActive(player.inventory.getStackInSlot(i))) {
+            if (isActiveClient(player.inventory.getStackInSlot(i))) {
                 return i;
             }
         }
 
-        if (isActive(player.inventory.getItemStack()))
+        if (isActiveClient(player.inventory.getItemStack()))
             return -1;
 
         return -2;
+    }
+
+    public static boolean haveNoActiveItemServer(EntityPlayer player){
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            if (isActiveServer(player.inventory.getStackInSlot(i))) {
+                return false;
+            }
+        }
+        if (isActiveServer(player.inventory.getItemStack()))
+            return false;
+        return true;
     }
 
     private static String startKey = "start";
     private static String segmentsKey = "segments";
     private static String activeKey = "active";
 
-    public static boolean isActive(ItemStack stack) {
-        return stack.getItem() == ARIADNE_THREAD && RecordingHandler.isActive() && stack.hasTagCompound() && stack.getTagCompound().getBoolean(activeKey);
+    public static boolean isActiveClient(ItemStack stack) {
+        return RecordingHandler.isActive() && isActiveServer(stack);
+    }
+
+    public static boolean isActiveServer(ItemStack stack){
+        return stack.getItem() == ARIADNE_THREAD && stack.hasTagCompound() && stack.getTagCompound().getBoolean(activeKey);
     }
 
     public static void markActive(ItemStack stack, boolean active, EntityPlayer player) {

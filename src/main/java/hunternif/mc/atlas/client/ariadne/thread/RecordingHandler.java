@@ -71,7 +71,7 @@ public class RecordingHandler {
                 return;
             }
 
-            int activeItem = ItemAriadneThread.getActiveItem(player);
+            int activeItem = ItemAriadneThread.getActiveItemClient(player);
             if (activeItem == -2) {
                 failStop();
                 return;
@@ -142,7 +142,7 @@ public class RecordingHandler {
         if (sendQueue.isEmpty())
             return;
 
-        int activeItem = ItemAriadneThread.getActiveItem(Minecraft.getMinecraft().player);
+        int activeItem = ItemAriadneThread.getActiveItemClient(Minecraft.getMinecraft().player);
         if (activeItem >= -1) {
             PacketDispatcher.sendToServer(new FlushAriadneThreadPoses(activeItem, sendQueue));
             sendQueue = new ArrayList<>();
