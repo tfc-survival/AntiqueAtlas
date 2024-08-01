@@ -19,18 +19,19 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
 import static hunternif.mc.atlas.RegistrarAntiqueAtlas.ATLAS;
 import static hunternif.mc.atlas.registry.TFCMarkerTypes.gradePrefix;
 
-@Mod.EventBusSubscriber(modid = "tfc", value = Side.CLIENT)
+@SideOnly(Side.CLIENT)
 public class TFCPropickHandler {
 
     @Optional.Method(modid = "tfc")
     @SubscribeEvent
-    public static void onUsePropick(ProspectEvent.Client event) {
+    public void onUsePropick(ProspectEvent.Client event) {
         ProspectResult.Type type = event.getResultType();
         if (type == ProspectResult.Type.FOUND) {
             EntityPlayer player = event.getPlayer();
