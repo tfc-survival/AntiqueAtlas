@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
@@ -83,9 +84,10 @@ public class RecipeTransferPathToAtlas extends ShapelessRecipes {
 
         int color = ItemAriadneThread.getColor(ball);
 
+        int dimension = ItemAriadneThread.getDimension(ball, event.player);
         BlockPos start = ItemAriadneThread.getStart(ball);
         short[] segments = ItemAriadneThread.getPath(ball);
         if (start != null && segments != null)
-            AtlasAPI.paths.addPath(world, atlas.getItemDamage(), ball.getDisplayName(), color, start.getX(), start.getZ(), segments);
+            AtlasAPI.paths.addPath(DimensionManager.getWorld(dimension), atlas.getItemDamage(), ball.getDisplayName(), color, start.getX(), start.getZ(), segments);
     }
 }
