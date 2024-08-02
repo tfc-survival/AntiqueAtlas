@@ -37,9 +37,11 @@ public class ItemAriadneThread extends Item {
         return stack.getTagCompound().getLong(activeKey);
     }
 
-    public static void activate(ItemStack stack, long key) {
+    public static void activate(ItemStack stack, long key, BlockPos start) {
         initNbt(stack);
         stack.getTagCompound().setLong(activeKey, key);
+        if (!stack.getTagCompound().hasKey(startKey, Constants.NBT.TAG_LONG))
+            stack.getTagCompound().setLong(startKey, start.toLong());
     }
 
     public static boolean deactivate(ItemStack stack) {
@@ -68,7 +70,7 @@ public class ItemAriadneThread extends Item {
 
         } else {
             if (world.isRemote) {
-                RecordingHandler.start(heldItem, hand);
+                RecordingHandler.start(heldItem, playerIn, hand);
             }
         }
 
