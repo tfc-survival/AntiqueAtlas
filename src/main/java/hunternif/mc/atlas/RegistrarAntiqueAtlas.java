@@ -71,7 +71,7 @@ public class RegistrarAntiqueAtlas {
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public static void registerColorHandlers(ColorHandlerEvent.Item event) {
-        event.getItemColors().registerItemColorHandler((stack, tintIndex) -> ARIADNE_THREAD.getColor(stack), ARIADNE_THREAD);
+        event.getItemColors().registerItemColorHandler((stack, tintIndex) -> ItemAriadneThread.getColor(stack), ARIADNE_THREAD);
     }
 
     // Probably not needed since Forge for 1.12 does not support transfers from earlier than 1.11.2, but just in case
