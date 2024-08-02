@@ -41,7 +41,9 @@ public class RecipeAtlasCombining extends RecipeBase {
             if (!stack.isEmpty()) {
                 if (stack.getItem() == RegistrarAntiqueAtlas.ATLAS) {
                     atlasesFound++;
-                }
+                } else {
+					return false;
+				}
             }
         }
         return atlasesFound > 1;
