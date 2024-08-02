@@ -8,6 +8,7 @@ import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
 import hunternif.mc.atlas.network.server.PacketStartPathRecording;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
@@ -46,11 +47,12 @@ public class RecordingHandler {
         static final SecureRandom numberGenerator = new SecureRandom();
     }
 
-    public static void start(ItemStack heldItem, EnumHand hand) {
+    public static void start(ItemStack heldItem, EntityPlayer playerIn, EnumHand hand) {
         if (recordingTarget == 0) {
             recordingTarget = Holder.numberGenerator.nextLong();
-            PacketDispatcher.sendToServer(new PacketStartPathRecording(hand, recordingTarget));
-            ItemAriadneThread.activate(heldItem, recordingTarget);
+            BlockPos start = ItemAriadneThread.posOfPlayer(playerIn);
+            PacketDispatcher.sendToServer(new PacketStartPathRecording(hand, recordingTarget, start));
+            ItemAriadneThread.activate(heldItem, recordingTarget, start);
             lastPos = RenderHandler.load(heldItem);
         }
     }
@@ -118,7 +120,17 @@ public class RecordingHandler {
 
     private static Vec3d getCurrentDirection() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        return new Vec3d(player.motionX, player.motionY, player.motionZ).normalize();
+        Entity movableEntity = getMovableEntity(player);
+        return new Vec3d(movableEntity.motionX, movableEntity.motionY, movableEntity.motionZ).normalize();
+    }
+
+    private static Entity getMovableEntity(EntityPlayer player) {
+        Entity ridingEntity = player.getRidingEntity();
+
+        if (ridingEntity != null)
+            return ridingEntity;
+
+        return player;
     }
 
     public static boolean addSegment() {
