@@ -211,6 +211,7 @@ public class ItemAriadneThread extends Item {
             stack.getTagCompound().removeTag(startKey);
             stack.getTagCompound().removeTag(segmentsKey);
             stack.getTagCompound().removeTag(activeKey);
+            stack.getTagCompound().removeTag(dimensionKey);
         }
     }
 
