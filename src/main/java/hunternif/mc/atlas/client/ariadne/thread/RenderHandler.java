@@ -66,6 +66,11 @@ public class RenderHandler {
             return lastPos;
         }
 
+        if (start != null) {
+            consumer.add(start);
+            return start;
+        }
+
         return onlyCurrent(consumer);
     }
 
