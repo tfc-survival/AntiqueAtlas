@@ -81,13 +81,7 @@ public class RecipeTransferPathToAtlas extends ShapelessRecipes {
         if (!ball.hasTagCompound())
             return;
 
-        NBTTagCompound displayNbt = ball.getTagCompound().getCompoundTag("display");
-
-        int color;
-        if (displayNbt != null && displayNbt.hasKey("color", 3)) {
-            color = displayNbt.getInteger("color");
-        } else
-            color = 0x31A500;
+        int color = ItemAriadneThread.getColor(ball);
 
         BlockPos start = ItemAriadneThread.getStart(ball);
         short[] segments = ItemAriadneThread.getPath(ball);
