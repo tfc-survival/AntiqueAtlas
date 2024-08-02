@@ -5,10 +5,7 @@ import hunternif.mc.atlas.network.bidirectional.DeleteMarkerPacket;
 import hunternif.mc.atlas.network.bidirectional.DeletePathPacket;
 import hunternif.mc.atlas.network.bidirectional.PutBiomeTilePacket;
 import hunternif.mc.atlas.network.client.*;
-import hunternif.mc.atlas.network.server.AddMarkerPacket;
-import hunternif.mc.atlas.network.server.BrowsingPositionPacket;
-import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
-import hunternif.mc.atlas.network.server.RegisterTileIdPacket;
+import hunternif.mc.atlas.network.server.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.Loader;
@@ -56,6 +53,7 @@ public class PacketDispatcher {
         registerMessage(FlushAriadneThreadPoses.class);
         registerMessage(DeletePathPacket.class);
         registerMessage(PathsPacket.class);
+        registerMessage(PacketStartPathRecording.class);
 
         if (Loader.isModLoaded("immersiveengineering"))
             registerMessage(PickupSamplePacket.class);

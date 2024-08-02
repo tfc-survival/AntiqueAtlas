@@ -5,9 +5,12 @@ import hunternif.mc.atlas.item.ItemAriadneThread;
 import hunternif.mc.atlas.map.objects.path.Segment;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
+import hunternif.mc.atlas.network.server.PacketStartPathRecording;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -17,6 +20,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,49 +33,55 @@ public class RecordingHandler {
     public static final double directionAngleValueableDifference = Math.toRadians(45 / 2);
     private static long lastFlushTime = 0;
     private static Vec3d direction;
-    private static boolean recording = false;
+    private static long recordingTarget = 0;
     private static List<Short> sendQueue = new ArrayList<>();
 
     private static BlockPos lastPos;
 
     public static boolean isActive() {
-        return recording;
+        return recordingTarget != 0;
     }
 
-    public static void start(ItemStack heldItem) {
-        if (!recording) {
-            recording = true;
+    private static class Holder {
+        static final SecureRandom numberGenerator = new SecureRandom();
+    }
+
+    public static void start(ItemStack heldItem, EnumHand hand) {
+        if (recordingTarget == 0) {
+            recordingTarget = Holder.numberGenerator.nextLong();
+            PacketDispatcher.sendToServer(new PacketStartPathRecording(hand, recordingTarget));
+            ItemAriadneThread.activate(heldItem, recordingTarget);
             lastPos = RenderHandler.load(heldItem);
         }
     }
 
-    public static void stop() {
-        if (recording) {
+    public static void stop(ItemStack heldItem) {
+        if (recordingTarget == ItemAriadneThread.getActiveKey(heldItem)) {
             addSegment();
             flush();
             RenderHandler.clear();
-            recording = false;
+            recordingTarget = 0;
         }
     }
 
     public static void failStop() {
         sendQueue = new ArrayList<>();
         RenderHandler.clear();
-        recording = false;
+        recordingTarget = 0;
     }
 
 
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public static void tick(TickEvent.ClientTickEvent event) {
-        if (recording) {
+        if (recordingTarget != 0) {
             EntityPlayerSP player = Minecraft.getMinecraft().player;
             if (player == null) {
                 failStop();
                 return;
             }
 
-            int activeItem = ItemAriadneThread.getActiveItemClient(player);
+            int activeItem = getActiveItemClient(player);
             if (activeItem == -2) {
                 failStop();
                 return;
@@ -86,7 +96,7 @@ public class RecordingHandler {
 
             } else {
                 BlockPos current = ItemAriadneThread.posOfPlayer(player);
-                if (current.distanceSq(lastPos) >= 289) {
+                if (current.distanceSq(lastPos) >= maxRecordingDistanceSq) {
                     addSegment();
                 }
             }
@@ -131,8 +141,7 @@ public class RecordingHandler {
             lastPos = pos;
             return true;
         } else {
-            recording = false;
-            RenderHandler.clear();
+            failStop();
             player.sendStatusMessage(new TextComponentTranslation("msg.too.far"), true);
             return false;
         }
@@ -142,10 +151,34 @@ public class RecordingHandler {
         if (sendQueue.isEmpty())
             return;
 
-        int activeItem = ItemAriadneThread.getActiveItemClient(Minecraft.getMinecraft().player);
+        int activeItem = getActiveItemClient(Minecraft.getMinecraft().player);
         if (activeItem >= -1) {
             PacketDispatcher.sendToServer(new FlushAriadneThreadPoses(activeItem, sendQueue));
             sendQueue = new ArrayList<>();
         }
+    }
+
+    public static boolean isActiveStack(ItemStack stack) {
+        long activeKey = ItemAriadneThread.getActiveKey(stack);
+        return activeKey != 0 && recordingTarget == activeKey;
+    }
+
+    public static int getActiveItemClient(EntityPlayer player) {
+        if (isActiveStack(player.getHeldItemMainhand()))
+            return player.inventory.currentItem;
+
+        if (isActiveStack(player.getHeldItemOffhand()))
+            return 40;
+
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            if (isActiveStack(player.inventory.getStackInSlot(i))) {
+                return i;
+            }
+        }
+
+        if (isActiveStack(player.inventory.getItemStack()))
+            return -1;
+
+        return -2;
     }
 }

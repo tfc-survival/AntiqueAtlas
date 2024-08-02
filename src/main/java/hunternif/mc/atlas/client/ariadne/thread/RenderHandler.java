@@ -76,7 +76,7 @@ public class RenderHandler {
     @SubscribeEvent
     public static void render(RenderWorldLastEvent event) {
         ItemStack current = getCurrentHeldItem();
-        if (current.isEmpty() || ItemAriadneThread.isActiveClient(current)) {
+        if (current.isEmpty() || RecordingHandler.isActiveStack(current)) {
             if (RecordingHandler.isActive()) {
                 renderLine(recordingPath, event.getPartialTicks(), getActiveItemStack());
             }
@@ -92,7 +92,7 @@ public class RenderHandler {
 
     private static ItemStack getActiveItemStack() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        int slot = ItemAriadneThread.getActiveItemClient(player);
+        int slot = RecordingHandler.getActiveItemClient(player);
         if (slot == -1)
             return player.inventory.getItemStack();
 
