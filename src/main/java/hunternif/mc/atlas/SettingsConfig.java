@@ -67,9 +67,12 @@ public class SettingsConfig {
         @Config.Comment({"The maximum number of markers a particular atlas can hold."})
         @Config.RangeInt(min = 0, max = 2147483647)
         public int markerLimit = 10000;
+        @Config.Comment({"The maximum number of path segments total atlas can hold."})
+        @Config.RangeInt(min = 0, max = 2147483647)
+        public int pathSegmentLimit = 100000;
         @Config.Comment({"The maximum number of paths a particular atlas can hold."})
         @Config.RangeInt(min = 0, max = 2147483647)
-        public int pathLimit = 100;
+        public int pathLimit = 1000;
         @Config.Comment({"Whether to perform additional scanning to locate small ponds of water or lava.", "Disable for better performance."})
         public boolean doScanPonds = true;
         @Config.Comment({"Whether to perform additional scanning to locate ravines.", "Disable for better performance."})

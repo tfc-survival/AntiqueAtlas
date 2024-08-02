@@ -73,9 +73,21 @@ public class DimensionPathsData {
     }
 
     public void readFromNBT(NBTTagCompound nbt) {
+        int segmentCount = 0;
         NBTTagList pathesNbt = nbt.getTagList("pathes", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < pathesNbt.tagCount(); i++) {
+
+        if (pathesNbt.tagCount() > SettingsConfig.performance.pathLimit)
+            Log.warn("Could not load %d paths. Atlas is at it's limit of %d paths", pathesNbt.tagCount() - SettingsConfig.performance.pathLimit, SettingsConfig.performance.pathLimit);
+
+        for (int i = 0; i < Math.min(pathesNbt.tagCount(), SettingsConfig.performance.pathLimit); i++) {
             Path path = new Path(pathesNbt.getCompoundTagAt(i));
+
+            segmentCount += path.segments.length;
+            if (segmentCount > SettingsConfig.performance.pathSegmentLimit) {
+                Log.warn("Could not add new path. Atlas is at it's limit of %d path segments", SettingsConfig.performance.pathSegmentLimit);
+                break;
+            }
+
             idToPath.put(path.id, path);
 
             if (largestID.intValue() < path.id) {
