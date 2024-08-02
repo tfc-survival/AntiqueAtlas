@@ -1,5 +1,6 @@
 package hunternif.mc.atlas.recipe;
 
+import hunternif.mc.atlas.item.ItemAriadneThread;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -42,8 +43,8 @@ public class RecipeAriadneThreadColoring extends RecipeBase {
             if (stack.getItem() == ARIADNE_THREAD) {
                 if (ball.isEmpty()) {
                     ball = stack.copy();
-                    if (ARIADNE_THREAD.hasColor(ball)) {
-                        int color = ARIADNE_THREAD.getColor(ball);
+                    if (ItemAriadneThread.hasColor(ball)) {
+                        int color = ItemAriadneThread.getColor(ball);
 
                         int red = (color >> 16 & 0xff);
                         int green = (color >> 8 & 0xff);
@@ -88,7 +89,7 @@ public class RecipeAriadneThreadColoring extends RecipeBase {
         int resultColor = resultRed << 16 | resultGreen << 8 | resultBlue;
 
         ball.setCount(1);
-        ARIADNE_THREAD.setColor(ball, resultColor);
+        ItemAriadneThread.setColor(ball, resultColor);
 
         return ball;
     }
