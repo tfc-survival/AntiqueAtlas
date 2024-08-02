@@ -107,31 +107,38 @@ public class ItemAriadneThread extends Item {
         return RecordingHandler.isActive() && RecordingHandler.isActiveStack(stack);
     }
 
-    private String displayKey = "display";
     private String colorKey = "color";
+    private String defaultColorKey = "default_color";
 
     public boolean hasColor(ItemStack stack) {
         NBTTagCompound nbttagcompound = stack.getTagCompound();
-        return nbttagcompound != null &&
-                nbttagcompound.hasKey(displayKey, Constants.NBT.TAG_COMPOUND) &&
-                nbttagcompound.getCompoundTag(displayKey).hasKey(colorKey, Constants.NBT.TAG_INT);
+        return nbttagcompound != null && nbttagcompound.hasKey(colorKey, Constants.NBT.TAG_INT);
+    }
+
+    private boolean hasDefaultColor(ItemStack stack) {
+        NBTTagCompound nbttagcompound = stack.getTagCompound();
+        return nbttagcompound != null && nbttagcompound.hasKey(defaultColorKey, Constants.NBT.TAG_INT);
     }
 
     public int getColor(ItemStack stack) {
         if (hasColor(stack))
-            return stack.getTagCompound().getCompoundTag(displayKey).getInteger(colorKey);
+            return stack.getTagCompound().getInteger(colorKey);
+
+        if (hasDefaultColor(stack))
+            return stack.getTagCompound().getInteger(defaultColorKey);
 
         return 0xff5BCF1F;
     }
 
     public void removeColor(ItemStack stack) {
         if (stack.hasTagCompound()) {
-            stack.getTagCompound().getCompoundTag(displayKey).removeTag(colorKey);
+            stack.getTagCompound().removeTag(colorKey);
         }
     }
 
     public void setColor(ItemStack stack, int color) {
-        stack.getOrCreateSubCompound(displayKey).setInteger(colorKey, color);
+        initNbt(stack);
+        stack.getTagCompound().setInteger(colorKey, color);
     }
 
     private static String startKey = "start";
