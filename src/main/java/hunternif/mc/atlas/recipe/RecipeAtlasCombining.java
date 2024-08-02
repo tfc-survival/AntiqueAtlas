@@ -42,8 +42,8 @@ public class RecipeAtlasCombining extends RecipeBase {
                 if (stack.getItem() == RegistrarAntiqueAtlas.ATLAS) {
                     atlasesFound++;
                 } else {
-					return false;
-				}
+                    return false;
+                }
             }
         }
         return atlasesFound > 1;
@@ -65,7 +65,13 @@ public class RecipeAtlasCombining extends RecipeBase {
                 }
             }
         }
-        return atlasIds.size() < 1 ? ItemStack.EMPTY : firstAtlas.copy();
+
+        if (atlasIds.size() < 1)
+            return ItemStack.EMPTY;
+
+        ItemStack r = firstAtlas.copy();
+        r.setCount(1);
+        return r;
     }
 
     @Override
