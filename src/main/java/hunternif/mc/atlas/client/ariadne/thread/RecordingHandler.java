@@ -38,6 +38,7 @@ public class RecordingHandler {
     private static List<Short> sendQueue = new ArrayList<>();
 
     private static BlockPos lastPos;
+    private static int lastDimension;
 
     public static boolean isActive() {
         return recordingTarget != 0;
@@ -52,8 +53,9 @@ public class RecordingHandler {
             recordingTarget = Holder.numberGenerator.nextLong();
             BlockPos start = ItemAriadneThread.posOfPlayer(playerIn);
             PacketDispatcher.sendToServer(new PacketStartPathRecording(hand, recordingTarget, start));
-            ItemAriadneThread.activate(heldItem, recordingTarget, start);
+            ItemAriadneThread.activate(heldItem, recordingTarget, start, playerIn.dimension);
             lastPos = RenderHandler.load(heldItem);
+            lastDimension = ItemAriadneThread.getDimension(heldItem, playerIn);
         }
     }
 
@@ -85,6 +87,11 @@ public class RecordingHandler {
 
             int activeItem = getActiveItemClient(player);
             if (activeItem == -2) {
+                failStop();
+                return;
+            }
+
+            if (lastDimension != player.dimension) {
                 failStop();
                 return;
             }

@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -30,6 +31,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class RenderHandler {
     private static LinkedList<BlockPos> recordingPath = new LinkedList<>();
     private static List<BlockPos> heldItemPath = new ArrayList<>();
+    private static int heldItemDimension = 0;
 
     private static ItemStack lastHoldItem = ItemStack.EMPTY;
 
@@ -81,12 +83,19 @@ public class RenderHandler {
                 renderLine(recordingPath, event.getPartialTicks(), getActiveItemStack());
             }
         } else {
+            EntityPlayerSP player = Minecraft.getMinecraft().player;
             if (current != lastHoldItem) {
                 lastHoldItem = current;
                 load(current, heldItemPath);
+                heldItemDimension = ItemAriadneThread.getDimension(current, player);
             }
-            if (heldItemPath.size() > 1)
-                renderLine(heldItemPath, event.getPartialTicks(), lastHoldItem);
+            if (heldItemPath.size() > 1) {
+                if (heldItemDimension == player.dimension)
+                    renderLine(heldItemPath, event.getPartialTicks(), lastHoldItem);
+                else
+                    player.sendStatusMessage(new TextComponentTranslation("thread.in.other.dim.msg", heldItemDimension), true);
+
+            }
         }
     }
 

@@ -3,6 +3,8 @@ item.emptyAntiqueAtlas.name=Empty Antique Atlas
 item.astrolabe.name=Astrolabe
 item.ariadne_thread.name=Ariadne Thread Ball
 
+thread.in.other.dim.msg=The path is in another dimension: %d
+
 item.ariadne_thread.tooltip1=Right click to start recording path
 item.ariadne_thread.tooltip2=Sneak+right click to stop recording path
 

@@ -37,11 +37,13 @@ public class ItemAriadneThread extends Item {
         return stack.getTagCompound().getLong(activeKey);
     }
 
-    public static void activate(ItemStack stack, long key, BlockPos start) {
+    public static void activate(ItemStack stack, long key, BlockPos start, int dimension) {
         initNbt(stack);
         stack.getTagCompound().setLong(activeKey, key);
-        if (!stack.getTagCompound().hasKey(startKey, Constants.NBT.TAG_LONG))
+        if (!stack.getTagCompound().hasKey(startKey, Constants.NBT.TAG_LONG)) {
             stack.getTagCompound().setLong(startKey, start.toLong());
+            stack.getTagCompound().setInteger(dimensionKey, dimension);
+        }
     }
 
     public static boolean deactivate(ItemStack stack) {
@@ -116,8 +118,8 @@ public class ItemAriadneThread extends Item {
     }
 
     private static boolean hasDefaultColor(ItemStack stack) {
-        NBTTagCompound nbttagcompound = stack.getTagCompound();
-        return nbttagcompound != null && nbttagcompound.hasKey(defaultColorKey, Constants.NBT.TAG_INT);
+        NBTTagCompound nbt = stack.getTagCompound();
+        return nbt != null && nbt.hasKey(defaultColorKey, Constants.NBT.TAG_INT);
     }
 
     public static int getColor(ItemStack stack) {
@@ -141,6 +143,7 @@ public class ItemAriadneThread extends Item {
         stack.getTagCompound().setInteger(colorKey, color);
     }
 
+    private static String dimensionKey = "dimension";
     private static String startKey = "start";
     private static String segmentsKey = "segments";
     private static String activeKey = "active";
@@ -149,6 +152,16 @@ public class ItemAriadneThread extends Item {
         if (!stack.hasTagCompound()) {
             stack.setTagCompound(new NBTTagCompound());
         }
+    }
+
+    public static int getDimension(ItemStack stack, EntityPlayer player) {
+        initNbt(stack);
+        NBTTagCompound nbt = stack.getTagCompound();
+
+        if (nbt.hasKey(dimensionKey, Constants.NBT.TAG_INT))
+            return nbt.getInteger(dimensionKey);
+
+        return player.dimension;
     }
 
     public static void append(ItemStack stack, List<Short> addition) {

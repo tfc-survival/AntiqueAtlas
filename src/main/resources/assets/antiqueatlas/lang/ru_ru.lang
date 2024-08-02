@@ -3,6 +3,8 @@ item.emptyAntiqueAtlas.name=Пустой старинный атлас
 item.astrolabe.name=Астролябия
 item.ariadne_thread.name=Клубок ниток Ариадны
 
+thread.in.other.dim.msg=Путь находится в другом измерении: %d
+
 item.ariadne_thread.tooltip1=ПКМ чтобы начать запись пути
 item.ariadne_thread.tooltip2=Шифт+ПКМ чтобы остановить
 

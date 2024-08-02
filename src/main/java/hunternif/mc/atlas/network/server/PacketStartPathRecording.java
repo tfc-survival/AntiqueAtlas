@@ -45,7 +45,7 @@ public class PacketStartPathRecording extends AbstractMessage.AbstractServerMess
     protected void process(EntityPlayer player, Side side) {
         ItemStack heldItem = player.getHeldItem(hand);
         if (heldItem.getItem() == RegistrarAntiqueAtlas.ARIADNE_THREAD) {
-            ItemAriadneThread.activate(heldItem, activeKey, start);
+            ItemAriadneThread.activate(heldItem, activeKey, start, player.dimension);
         }
     }
 }
