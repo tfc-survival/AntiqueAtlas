@@ -4,6 +4,7 @@ import hunternif.mc.atlas.client.ariadne.thread.RecordingHandler;
 import hunternif.mc.atlas.map.objects.path.Path;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
@@ -102,6 +103,9 @@ public class ItemAriadneThread extends Item {
         super.addInformation(stack, worldIn, tooltip, flagIn);
         tooltip.add(I18n.format("item.ariadne_thread.tooltip1"));
         tooltip.add(I18n.format("item.ariadne_thread.tooltip2"));
+        if (hasPath(stack)) {
+            tooltip.add(I18n.format("item.ariadne_thread.tooltip3", getDimension(stack, Minecraft.getMinecraft().player)));
+        }
     }
 
     @Override
@@ -152,6 +156,13 @@ public class ItemAriadneThread extends Item {
         if (!stack.hasTagCompound()) {
             stack.setTagCompound(new NBTTagCompound());
         }
+    }
+
+    public static boolean hasPath(ItemStack stack) {
+        if (!stack.hasTagCompound())
+            return false;
+
+        return stack.getTagCompound().hasKey(segmentsKey, Constants.NBT.TAG_BYTE_ARRAY);
     }
 
     public static int getDimension(ItemStack stack, EntityPlayer player) {
