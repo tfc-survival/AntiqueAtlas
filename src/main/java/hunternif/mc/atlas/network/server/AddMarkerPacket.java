@@ -45,7 +45,7 @@ public class AddMarkerPacket extends AbstractServerMessage<AddMarkerPacket> {
         this.x = x;
         this.y = y;
         this.visibleAhead = visibleAhead;
-        System.out.println("AddMarkerPacket(" + atlasID + ", " + dimension + ", " + type + ", " + label + ", " + x + ", " + y + ", " + visibleAhead + ")");
+        //System.out.println("AddMarkerPacket(" + atlasID + ", " + dimension + ", " + type + ", " + label + ", " + x + ", " + y + ", " + visibleAhead + ")");
     }
 
     @Override
