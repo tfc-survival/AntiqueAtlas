@@ -7,6 +7,7 @@ thread.in.other.dim.msg=Путь находится в другом измере
 
 item.ariadne_thread.tooltip1=ПКМ чтобы начать запись пути
 item.ariadne_thread.tooltip2=Шифт+ПКМ чтобы остановить
+item.ariadne_thread.tooltip3=Имеет путь в измерении %d
 
 item.antique_astrolabe.tooltip1=ПКМ чтобы выбрать метку для отслеживания
 item.antique_astrolabe.tooltip2=Шифт+ПКМ чтобы добавить маркер на блок, на который смотрите
