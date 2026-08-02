@@ -416,12 +416,26 @@ public class AAORenderEventReceiver {
         return new Rect(minChunkX, minChunkY, maxChunkX, maxChunkY);
     }
 
-    public static final boolean isBook = false;
+    public static boolean isBook = false;
+    public static int bookFramebufferWidth = 1;
+    public static int bookFramebufferHeight = 1;
+    public static int bookGuiWidth = 1;
+    public static int bookGuiHeight = 1;
 
     /**
      * Calls GL11.glScissor, but uses GUI coordinates
      */
     private static void glScissorGUI(Rect shape) {
+        if (isBook) {
+            float scissorScaleX = bookFramebufferWidth / (float) bookGuiWidth;
+            float scissorScaleY = bookFramebufferHeight / (float) bookGuiHeight;
+            int x = Math.max(0, (int) Math.floor(shape.minX * scissorScaleX));
+            int y = Math.max(0, (int) Math.floor(bookFramebufferHeight - shape.maxY * scissorScaleY));
+            int maxX = Math.min(bookFramebufferWidth, (int) Math.ceil(shape.maxX * scissorScaleX));
+            int maxY = Math.min(bookFramebufferHeight, (int) Math.ceil(bookFramebufferHeight - shape.minY * scissorScaleY));
+            GL11.glScissor(x, y, Math.max(0, maxX - x), Math.max(0, maxY - y));
+            return;
+        }
         // glScissor uses the default window coordinates,
         // the display window does not. We need to fix this
         int mcHeight = Minecraft.getMinecraft().displayHeight;

@@ -1,5 +1,7 @@
 package hunternif.mc.atlas;
 
+import hunternif.mc.atlas.client.ingame.book.AtlasBakedModel;
+import hunternif.mc.atlas.client.ingame.book.BookRenderer;
 import hunternif.mc.atlas.item.ItemAriadneThread;
 import hunternif.mc.atlas.item.ItemAstrolabe;
 import hunternif.mc.atlas.item.ItemAtlas;
@@ -12,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -65,6 +68,16 @@ public class RegistrarAntiqueAtlas {
             ModelLoader.setCustomModelResourceLocation(ASTROLABE, 0, new ModelResourceLocation(ASTROLABE.getRegistryName(), "inventory"));
             ModelLoader.setCustomModelResourceLocation(ARIADNE_THREAD, 0, new ModelResourceLocation(ARIADNE_THREAD.getRegistryName(), "inventory"));
             ModelLoader.setCustomMeshDefinition(ATLAS, stack -> new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"));
+            ATLAS.setTileEntityItemStackRenderer(new BookRenderer());
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public static void registerAtlasModel(ModelBakeEvent event) {
+        if (SettingsConfig.gameplay.itemNeeded) {
+            ModelResourceLocation atlasModel = new ModelResourceLocation(ATLAS.getRegistryName(), "inventory");
+            event.getModelRegistry().putObject(atlasModel, new AtlasBakedModel(event.getModelRegistry().getObject(atlasModel)));
         }
     }
 
