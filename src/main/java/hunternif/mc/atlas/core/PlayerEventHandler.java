@@ -11,6 +11,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.ArrayList;
+
 public class PlayerEventHandler {
     @SubscribeEvent
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -35,10 +37,22 @@ public class PlayerEventHandler {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        AtlasData data = AntiqueAtlasMod.atlasData.getAtlasData(
-                event.player.getUniqueID().hashCode(), event.player.world);
+        // Fires at both the start and the end of every tick, and player.ticksExisted is the
+        // same for both, so without this the scan gate opens twice and the whole chunk scan
+        // runs back to back.
+        if (event.phase != TickEvent.Phase.START) {
+            return;
+        }
+        int atlasID = event.player.getUniqueID().hashCode();
+        AtlasData data = AntiqueAtlasMod.atlasData.getAtlasData(atlasID, event.player.world);
 
         // Updating map around player
-        data.updateMapAroundPlayer(event.player);
+        ArrayList<TileInfo> newTiles = data.updateMapAroundPlayer(event.player);
+        // Normally both sides scan and reach the same tiles, so sending them would be pure
+        // duplicate traffic. Detectors that read server-only world data are the exception:
+        // there the client skips the scan entirely and has nothing but these packets.
+        if (data.needsServerTileSync(event.player.getEntityWorld())) {
+            AtlasData.sendTilesToPlayer(atlasID, event.player, newTiles);
+        }
     }
 }

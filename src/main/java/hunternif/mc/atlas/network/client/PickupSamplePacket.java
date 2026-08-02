@@ -8,7 +8,7 @@ import hunternif.mc.atlas.map.objects.marker.DimensionMarkersData;
 import hunternif.mc.atlas.map.objects.marker.Marker;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
 import hunternif.mc.atlas.network.AbstractMessage;
-import net.dries007.tfc.util.calendar.TimeTFC;
+import hunternif.mc.atlas.util.TimeTFC;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.resources.I18n;

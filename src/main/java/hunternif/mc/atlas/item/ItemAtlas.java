@@ -5,14 +5,8 @@ import hunternif.mc.atlas.core.AtlasData;
 import hunternif.mc.atlas.core.TileInfo;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
 import hunternif.mc.atlas.map.objects.path.PathsData;
-import hunternif.mc.atlas.network.PacketDispatcher;
-import hunternif.mc.atlas.network.client.IntDimensionUpdatePacket;
-import hunternif.mc.atlas.network.client.ShortDimensionUpdatePacket;
-import hunternif.mc.atlas.network.client.TilesPacket;
-import hunternif.mc.atlas.util.MathUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
@@ -71,19 +65,7 @@ public class ItemAtlas extends Item {
 
         // Updating map around player
         ArrayList<TileInfo> newTiles = data.updateMapAroundPlayer(player);
-
-        if (!world.isRemote) {
-            if (newTiles.size() > 0) {
-                boolean useInt = newTiles.stream().anyMatch(t -> MathUtil.exceedsShort(t.x, t.z));
-                TilesPacket packet = useInt
-                        ? new IntDimensionUpdatePacket(stack.getItemDamage(), player.dimension)
-                        : new ShortDimensionUpdatePacket(stack.getItemDamage(), player.dimension);
-                for (TileInfo t : newTiles) {
-                    packet.addTile(t.x, t.z, t.biome);
-                }
-                PacketDispatcher.sendTo(packet, (EntityPlayerMP) player);
-            }
-        }
+        AtlasData.sendTilesToPlayer(stack.getItemDamage(), player, newTiles);
     }
 
 }

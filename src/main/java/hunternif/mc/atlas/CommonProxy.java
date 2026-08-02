@@ -1,8 +1,10 @@
 package hunternif.mc.atlas;
 
 import hunternif.mc.atlas.core.BiomeDetectorBase;
+import hunternif.mc.atlas.core.TFCSupport;
 import hunternif.mc.atlas.ext.ExtTileConfig;
 import hunternif.mc.atlas.ext.ExtTileIdMap;
+import hunternif.mc.atlas.ext.TFCTiles;
 import hunternif.mc.atlas.util.Log;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -38,6 +40,9 @@ public class CommonProxy {
 		extTileConfig.load(extTileIdMap);
 		// Assign default values AFTER the config file loads, so that the old saved values are kept:
 		registerVanillaCustomTiles();
+		if (AntiqueAtlasMod.tfcIntegration && Loader.isModLoaded("tfc")) {
+			registerTFCCustomTiles();
+		}
 		checkSaveConfig();
 	}
 
@@ -49,6 +54,7 @@ public class CommonProxy {
 		AntiqueAtlasMod.instance.jeidPresent = Loader.isModLoaded("jeid");
 		BiomeDetectorBase.setBiomeArrayMethod(AntiqueAtlasMod.instance.jeidPresent);
 		BiomeDetectorBase.scanBiomeTypes();
+		TFCSupport.init();
 	}
 
 	/** Register IDs for the pseudo-biomes used for vanilla Minecraft.
@@ -90,6 +96,17 @@ public class CommonProxy {
 
 		extTileIdMap.getOrCreatePseudoBiomeID(ExtTileIdMap.TILE_RAVINE);
 	}
+
+	/** Register IDs for the pseudo-biomes that stand in for TerraFirmaCraft terrain. */
+	private void registerTFCCustomTiles() {
+		for (TFCTiles tile : TFCTiles.values()) {
+			extTileIdMap.getOrCreatePseudoBiomeID(tile.tileName);
+		}
+	}
+
+	/** Hook up the TerraFirmaCraft features that only exist on one side. Called only
+	 * when TFC is present. */
+	public void initTFC() {}
 
 	public void openAtlasGUI(ItemStack stack) {}
 	public void openAstrolabeGUI() {}

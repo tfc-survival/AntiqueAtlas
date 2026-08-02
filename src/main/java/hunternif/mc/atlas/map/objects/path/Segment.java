@@ -1,7 +1,7 @@
 package hunternif.mc.atlas.map.objects.path;
 
 import com.google.common.collect.ImmutableList;
-import net.dries007.tfc.util.Vec2i;
+import su.tfcsurvival.util.Vec2i;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 

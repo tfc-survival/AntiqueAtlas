@@ -30,6 +30,11 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+// In a dev run FML resolves a mod's assets from the directory it found the @Mod class in,
+// so resources have to land beside the classes rather than in their own output dir -- with
+// them split, every model and texture of this mod is missing in runClient.
+sourceSets.main.output.resourcesDir = file("$buildDir/classes/java/main")
+
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
@@ -50,6 +55,7 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
             property "fml.coreMods.load", "gloomyfolken.hooklib.minecraft.MainHookLoader"
+            property 'mixin.env.disableRefMap', 'true'
 
             property '--usename', 'hohserg'
 
@@ -74,6 +80,10 @@ repositories {
     flatDir {
         dirs 'dev_mods'
     }
+    // For Obfuscate, which TFC needs at runtime in a dev run.
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 dependencies {
@@ -83,10 +93,22 @@ dependencies {
 
     implementation fg.deobf("abc:crafttweaker2:4.1.20.660")
 
-    implementation fg.deobf("abc:hooklib:3.4")
+    implementation fg.deobf("abc:hooklib:3.17")
     implementation fg.deobf("abc:Endothermic:2.1.4")
     implementation fg.deobf("io.gitlab.hohserg.elegant.networking:elegant-networking-1.12:3.15")
     compileOnly fg.deobf("abc:TFC:1.12.2-3")
+    // Kept out of the published jar, but a dev run needs TFC actually present: the TFC
+    // world type and its chunk data are what the map reads, and Segment references TFC too.
+    runtimeOnly fg.deobf("abc:TFC:1.12.2-3")
+    // TFC subscribes to Obfuscate's events, so FML fails to construct TFC without it.
+    runtimeOnly fg.deobf("curse.maven:obfuscate-289380:2916310")
+    // TFC registers past vanilla's 4096 block id ceiling and needs the id range extended.
+    runtimeOnly fg.deobf("abc:RoughlyEnoughIDs:2.2.1")
+    // RoughlyEnoughIDs is mixin-based and refuses to load without this. Already deobfuscated.
+    runtimeOnly "abc:mixinbooter:9.1-deobf"
+    // TFC's leaf rendering reaches into Dynamic Trees, so without it the game crashes
+    // tesselating leaves. Built from the DynamicTreesTFC repo.
+    runtimeOnly fg.deobf("abc:treestfc:1.0")
 
     compileOnly fg.deobf("abc:ImmersiveEngineering:0.12.107")
     compileOnly fg.deobf("abc:immersivepetroleum-1.12.2:1.1.10")

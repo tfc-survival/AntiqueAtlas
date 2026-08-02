@@ -3,15 +3,20 @@ package hunternif.mc.atlas.core;
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.SettingsConfig;
 import hunternif.mc.atlas.network.PacketDispatcher;
+import hunternif.mc.atlas.network.client.IntDimensionUpdatePacket;
 import hunternif.mc.atlas.network.client.MapDataPacket;
+import hunternif.mc.atlas.network.client.ShortDimensionUpdatePacket;
+import hunternif.mc.atlas.network.client.TilesPacket;
 import hunternif.mc.atlas.network.server.BrowsingPositionPacket;
 import hunternif.mc.atlas.util.Log;
 import hunternif.mc.atlas.util.IntVec2;
+import hunternif.mc.atlas.util.MathUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.util.Constants;
@@ -148,6 +153,14 @@ public class AtlasData extends WorldSavedData {
 		return biomeAnalyzer == null ? biomeDetectorOverworld : biomeAnalyzer;
 	}
 
+	/** TFC replaces the terrain of whichever dimension it generates, so the world it
+	 * built matters more than which dimension the player is standing in. */
+	private IBiomeDetector getBiomeDetector(World world) {
+		return TFCSupport.isTFCWorld(world)
+				? TFCSupport.getDetector()
+				: getBiomeDetectorForDimension(world.provider.getDimension());
+	}
+
 	/**Updates map data around player
 	 *
 	 * @return A set of the new tiles, mostly so the server can synch those with relavent clients.*/
@@ -164,7 +177,12 @@ public class AtlasData extends WorldSavedData {
 		int playerX = MathHelper.floor(player.posX) >> 4;
 		int playerZ = MathHelper.floor(player.posZ) >> 4;
 		ITileStorage seenChunks = this.getDimensionData(player.dimension);
-		IBiomeDetector biomeDetector = getBiomeDetectorForDimension(player.dimension);
+		IBiomeDetector biomeDetector = getBiomeDetector(player.getEntityWorld());
+		if (player.getEntityWorld().isRemote && biomeDetector.requiresServerData()) {
+			// The client can't reach the data this detector needs, so it leaves the map
+			// to the server, which sends every tile it scans.
+			return updatedTiles;
+		}
 		int scanRadius = SettingsConfig.performance.scanRadius;
 
 		final boolean rescanRequired = SettingsConfig.performance.doRescan && player.ticksExisted % rescanInterval == 0;
@@ -234,6 +252,28 @@ public class AtlasData extends WorldSavedData {
 			}
 		}
 		return updatedTiles;
+	}
+
+	/** Whether the client depends on the server to send it tiles for this world, because
+	 * it can't run the world's detector itself. */
+	public boolean needsServerTileSync(World world) {
+		return getBiomeDetector(world).requiresServerData();
+	}
+
+	/** Send freshly scanned tiles to the player who triggered the scan. Does nothing on
+	 * the client, or when the scan turned up nothing new. */
+	public static void sendTilesToPlayer(int atlasID, EntityPlayer player, List<TileInfo> tiles) {
+		if (player.getEntityWorld().isRemote || tiles.isEmpty() || !(player instanceof EntityPlayerMP)) {
+			return;
+		}
+		boolean useInt = tiles.stream().anyMatch(t -> MathUtil.exceedsShort(t.x, t.z));
+		TilesPacket packet = useInt
+				? new IntDimensionUpdatePacket(atlasID, player.dimension)
+				: new ShortDimensionUpdatePacket(atlasID, player.dimension);
+		for (TileInfo t : tiles) {
+			packet.addTile(t.x, t.z, t.biome);
+		}
+		PacketDispatcher.sendTo(packet, (EntityPlayerMP) player);
 	}
 
 	/** Puts a given tile into given map at specified coordinates and,

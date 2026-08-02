@@ -2,7 +2,6 @@ package hunternif.mc.atlas;
 
 import hunternif.mc.atlas.core.AtlasDataHandler;
 import hunternif.mc.atlas.core.PlayerEventHandler;
-import hunternif.mc.atlas.core.TFCPropickHandler;
 import hunternif.mc.atlas.ext.ExtBiomeDataHandler;
 import hunternif.mc.atlas.ext.watcher.DeathWatcher;
 import hunternif.mc.atlas.ext.watcher.impl.StructureWatcherFortress;
@@ -32,7 +31,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 @Mod(modid = AntiqueAtlasMod.ID, name = AntiqueAtlasMod.NAME, version = AntiqueAtlasMod.VERSION, dependencies = "after:forge@[14.23.2.2611,)")
 public class AntiqueAtlasMod {
 
-    public static final boolean tfcIntegration = false;
+    public static final boolean tfcIntegration = true;
 
 
     public static final String ID = "antiqueatlas";
@@ -92,7 +91,7 @@ public class AntiqueAtlasMod {
         if (tfcIntegration)
             if (Loader.isModLoaded("tfc")) {
                 TFCMarkerTypes.init();
-                MinecraftForge.EVENT_BUS.register(new TFCPropickHandler());
+                proxy.initTFC();
             }
 
         initIEMarkerIcon();

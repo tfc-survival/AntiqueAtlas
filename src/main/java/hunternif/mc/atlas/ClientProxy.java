@@ -5,9 +5,11 @@ import hunternif.mc.atlas.client.*;
 import hunternif.mc.atlas.client.gui.ExportProgressOverlay;
 import hunternif.mc.atlas.client.gui.GuiAstrolabe;
 import hunternif.mc.atlas.client.gui.GuiAtlas;
+import hunternif.mc.atlas.core.TFCPropickHandler;
 import hunternif.mc.atlas.ext.ExtTileIdMap;
 import hunternif.mc.atlas.ext.ExtTileTextureConfig;
 import hunternif.mc.atlas.ext.ExtTileTextureMap;
+import hunternif.mc.atlas.ext.TFCTiles;
 import hunternif.mc.atlas.map.objects.marker.MarkerTextureConfig;
 import hunternif.mc.atlas.registry.MarkerRegistry;
 import hunternif.mc.atlas.registry.MarkerType;
@@ -26,6 +28,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -86,6 +89,9 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         // Prevent rewriting of the config while no changes have been made:
         tileTextureMap.setDirty(false);
         registerVanillaCustomTileTextures();
+        if (AntiqueAtlasMod.tfcIntegration && Loader.isModLoaded("tfc")) {
+            registerTFCCustomTileTextures();
+        }
 
         if (Minecraft.getMinecraft().getResourceManager() instanceof IReloadableResourceManager) {
             ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(this);
@@ -127,6 +133,13 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
         guiAtlas.setMapScale(SettingsConfig.userInterface.defaultScale);
+    }
+
+    /** The prospector's pick reports its find through a client-side event, so the
+     * handler that turns it into a map marker can only live here. */
+    @Override
+    public void initTFC() {
+        MinecraftForge.EVENT_BUS.register(new TFCPropickHandler());
     }
 
     @Override
@@ -223,6 +236,8 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         map.register(FOREST);
         map.register(FOREST_HILLS);
         map.register(FOREST_FLOWERS);
+        map.register(SPARSE_FOREST);
+        map.register(SPARSE_FOREST_HILLS);
         map.register(DENSE_FOREST);
         map.register(DENSE_FOREST_HILLS);
         map.register(BIRCH);
@@ -420,6 +435,19 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         setCustomTileTextureIfNone(ExtTileIdMap.TILE_END_VOID, END_VOID);
 
         setCustomTileTextureIfNone(ExtTileIdMap.TILE_RAVINE, RAVINE);
+    }
+
+    /**
+     * Assign textures to the pseudo-biomes that stand in for TerraFirmaCraft terrain.
+     * These reuse the standard texture sets: TFC's landforms and forest types map onto
+     * the vanilla ones closely enough that dedicated art isn't needed.
+     *
+     * @see hunternif.mc.atlas.ext.TFCTiles
+     */
+    private void registerTFCCustomTileTextures() {
+        for (TFCTiles tile : TFCTiles.values()) {
+            setCustomTileTextureIfNone(tile.tileName, tile.texture);
+        }
     }
 
     /**

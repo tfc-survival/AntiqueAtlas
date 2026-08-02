@@ -1,12 +1,11 @@
 package hunternif.mc.atlas.registry;
 
-import net.dries007.tfc.api.types.Ore;
+import su.tfcsurvival.api.types.Ore;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TFCMarkerTypes {
     public static void init() {
-        for (Ore o : GameRegistry.findRegistry(Ore.class).getValuesCollection()) {
+        for (Ore o : Ore.values()) {
             registerGradedMarkerIcon(o, gradePrefix(Ore.Grade.NORMAL));
 
             if (o.isGraded()) {
@@ -17,7 +16,7 @@ public class TFCMarkerTypes {
     }
 
     private static void registerGradedMarkerIcon(Ore o, String grade) {
-        ResourceLocation textureLoc = new ResourceLocation("tfc", "textures/items/ore/" + grade + o.getRegistryName().getPath() + ".png");
+        ResourceLocation textureLoc = new ResourceLocation("tfc", "textures/items/ore/" + grade + o.name() + ".png");
 
         MarkerType type = new MarkerType(new ResourceLocation(getRegistryName(o, grade)), textureLoc) {
             @Override
@@ -31,7 +30,7 @@ public class TFCMarkerTypes {
     }
 
     public static String getRegistryName(Ore o, String grade) {
-        return "aa_item:" + grade + o.getRegistryName().getPath();
+        return "aa_item:" + grade + o.name();
     }
 
     public static String gradePrefix(Ore.Grade value) {
