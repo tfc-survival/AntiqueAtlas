@@ -3,6 +3,7 @@ package hunternif.mc.atlas.client.ingame.book;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.input.Keyboard;
@@ -41,15 +42,18 @@ public class BookModel extends ModelBase {
 
     public void renderPageContainerRight(Framebuffer rightTexture, Framebuffer flippingRightTexture, double scale) {
         setupStandartAttributes();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         rightTexture.bindFramebufferTexture();
         rightPage.render(scale);
         flippingRightTexture.bindFramebufferTexture();
         flippingPageRight.render(scale);
         rightTexture.unbindFramebufferTexture();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
     public void renderPageContainerLeft(Framebuffer leftTexture, Framebuffer flippingLeftTexture,double scale) {
         setupStandartAttributes();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         leftTexture.bindFramebufferTexture();
         //if (Keyboard.isKeyDown(Keyboard.KEY_H))
         //    FBODumper.dumped = false;
@@ -58,6 +62,7 @@ public class BookModel extends ModelBase {
         flippingLeftTexture.bindFramebufferTexture();
         flippingPageLeft.render(scale);
         leftTexture.unbindFramebufferTexture();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
 

@@ -7,21 +7,26 @@ import kenkron.antiqueatlasoverlay.AAORenderEventReceiver;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -102,33 +107,7 @@ public class BookRenderer extends TileEntityItemStackRenderer {
         float f4 = enumhand == EnumHand.OFF_HAND ? f : 0.0F;
         float f6 = 1.0F - (itemRenderer.prevEquippedProgressOffHand + (itemRenderer.equippedProgressOffHand - itemRenderer.prevEquippedProgressOffHand) * partialTicks);
 
-        // System.out.println(progress2);
-        /*
-
-        GlStateManager.pushMatrix();
-
-        float f1 = renderCase == right ? 1.0F : -1.0F;
-        int i = cameraTransformType == FIRST_PERSON_RIGHT_HAND ? 1 : -1;
-
-        GlStateManager.scale(2, 2, 2);
-        switch (renderCase) {
-            case right:
-                //GlStateManager.rotate(f * 10.0F, 0.0F, 0.0F, 1.0F);
-                itemRenderer.renderArmFirstPerson(f3, f5, EnumHandSide.RIGHT);
-                break;
-            case left:
-                GlStateManager.translate(-1 * (float) i * 0.56F, -1 * (-0.52F + f6 * -0.6F), -1 * -0.72F);
-                GlStateManager.translate(f1 * 0.125F, 0, 0.0F);
-                //GlStateManager.rotate(f * 10.0F, 0.0F, 0.0F, 1.0F);
-                itemRenderer.renderArmFirstPerson(f4, f6, EnumHandSide.LEFT);
-                break;
-            case both:
-                itemRenderer.renderArms();
-                break;
-        }
-        GlStateManager.popMatrix();
-
-        */
+        renderHands(itemRenderer, player, renderCase, f, f3, f5, f4, f6);
 
         int atlas = itemStackIn.getItemDamage();
 
@@ -252,6 +231,58 @@ public class BookRenderer extends TileEntityItemStackRenderer {
         GlStateManager.popMatrix();
     }
 
+    private void renderHands(ItemRenderer itemRenderer, EntityPlayerSP player, RenderCase renderCase,
+                             float swingProgress, float mainSwing, float mainEquip,
+                             float offSwing, float offEquip) {
+        if (player.isInvisible()) {
+            return;
+        }
+
+        switch (renderCase) {
+            case right:
+                renderMapSideArm(itemRenderer, EnumHandSide.RIGHT, mainSwing, mainEquip);
+                break;
+            case left:
+                renderMapSideArm(itemRenderer, EnumHandSide.LEFT, offSwing, offEquip);
+                break;
+            case both:
+                renderMapArms(itemRenderer, player, swingProgress, mainSwing, mainEquip);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void renderMapSideArm(ItemRenderer itemRenderer, EnumHandSide hand, float swingProgress, float equipProgress) {
+        GlStateManager.pushMatrix();
+
+        float side = hand == EnumHandSide.RIGHT ? 1.0F : -1.0F;
+        GlStateManager.translate(side * 0.125F, -0.125F, 0.0F);
+        GlStateManager.rotate(side * 10.0F, 0.0F, 0.0F, 1.0F);
+        itemRenderer.renderArmFirstPerson(equipProgress, swingProgress, hand);
+
+        GlStateManager.popMatrix();
+    }
+
+    private void renderMapArms(ItemRenderer itemRenderer, EntityPlayerSP player, float swingProgress, float mainSwing, float mainEquip) {
+        GlStateManager.pushMatrix();
+
+        float swingRoot = MathHelper.sqrt(swingProgress);
+        float ySwing = -0.2F * MathHelper.sin(swingProgress * (float) Math.PI);
+        float zSwing = -0.4F * MathHelper.sin(swingRoot * (float) Math.PI);
+        GlStateManager.translate(0.0F, -ySwing / 2.0F, zSwing);
+
+        float angle = getMapAngleFromPitch(player.rotationPitch);
+        GlStateManager.translate(0.0F, 0.04F + mainEquip * -1.2F + angle * -0.5F, -0.72F);
+        GlStateManager.rotate(angle * -85.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.translate(0.0F, 1.05F, 0.12F);
+        GlStateManager.scale(1.85F, 1.85F, 1.85F);
+        GlStateManager.rotate(28.0F, 1.0F, 0.0F, 0.0F);
+        itemRenderer.renderArms();
+
+        GlStateManager.popMatrix();
+    }
+
     private float getMapAngleFromPitch(float pitch) {
         float f = 1.0F - pitch / 45.0F + 0.1F;
         f = MathHelper.clamp(f, 0.0F, 1.0F);
@@ -278,6 +309,7 @@ public class BookRenderer extends TileEntityItemStackRenderer {
             GlStateManager.disableFog();
             GlStateManager.color(1, 1, 1, 1);
 
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             framebuffer.bindFramebuffer(true);
 
             saveMatrices();
@@ -291,20 +323,26 @@ public class BookRenderer extends TileEntityItemStackRenderer {
                 GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT);
                 GlStateManager.translate(0, 0, -2000);
 
-                EntityPlayer player = mc.player;
-                AAORenderEventReceiver.res = new ScaledResolution(mc);
-                AAORenderEventReceiver.isBook = true;
-                AAORenderEventReceiver.bookFramebufferWidth = pageContainerWidth;
-                AAORenderEventReceiver.bookFramebufferHeight = pageHeight;
-                AAORenderEventReceiver.bookGuiWidth = w;
-                AAORenderEventReceiver.bookGuiHeight = h;
-                AAORenderEventReceiver.drawMinimap(
-                        new Rect(-19, -17, 245, 199),
-                        atlas,
-                        player.getPositionVector(),
-                        player.getRotationYawHead(),
-                        player.dimension
-                );
+                GlProgramState programState = GlProgramState.fixedFunction();
+                try {
+                    EntityPlayer player = mc.player;
+                    AAORenderEventReceiver.res = new ScaledResolution(mc);
+                    AAORenderEventReceiver.isBook = true;
+                    AAORenderEventReceiver.bookFramebufferWidth = pageContainerWidth;
+                    AAORenderEventReceiver.bookFramebufferHeight = pageHeight;
+                    AAORenderEventReceiver.bookGuiWidth = w;
+                    AAORenderEventReceiver.bookGuiHeight = h;
+                    AAORenderEventReceiver.drawMinimap(
+                            new Rect(-19, -17, 245, 199),
+                            atlas,
+                            player.getPositionVector(),
+                            player.getRotationYawHead(),
+                            player.dimension
+                    );
+                    brightenPageFramebuffer();
+                } finally {
+                    programState.restore();
+                }
             } finally {
                 restoreMatrices();
             }
@@ -315,9 +353,48 @@ public class BookRenderer extends TileEntityItemStackRenderer {
             AAORenderEventReceiver.bookFramebufferHeight = oldBookFramebufferHeight;
             AAORenderEventReceiver.bookGuiWidth = oldBookGuiWidth;
             AAORenderEventReceiver.bookGuiHeight = oldBookGuiHeight;
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             renderTargetState.restore();
             GlStateManager.enableDepth();
             GlStateManager.color(1, 1, 1, 1);
+        }
+    }
+
+    private void brightenPageFramebuffer() {
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        buffer.pos(0, h, 0).color(1.0F, 0.92F, 0.78F, 0.22F).endVertex();
+        buffer.pos(w, h, 0).color(1.0F, 0.92F, 0.78F, 0.22F).endVertex();
+        buffer.pos(w, 0, 0).color(1.0F, 0.92F, 0.78F, 0.22F).endVertex();
+        buffer.pos(0, 0, 0).color(1.0F, 0.92F, 0.78F, 0.22F).endVertex();
+        Tessellator.getInstance().draw();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1, 1, 1, 1);
+    }
+
+    private static class GlProgramState {
+        private final int oldProgram;
+
+        static GlProgramState fixedFunction() {
+            GlProgramState state = new GlProgramState();
+            if (state.oldProgram != 0) {
+                GL20.glUseProgram(0);
+            }
+            return state;
+        }
+
+        private GlProgramState() {
+            oldProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+        }
+
+        void restore() {
+            if (oldProgram != 0) {
+                GL20.glUseProgram(oldProgram);
+            }
         }
     }
 

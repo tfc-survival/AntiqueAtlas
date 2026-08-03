@@ -32,7 +32,6 @@ public class PageModel {
     }
 
     public void render(double scale) {
-
         GlStateManager.disableLighting();
 
         GlStateManager.pushMatrix();
@@ -62,7 +61,6 @@ public class PageModel {
         GlStateManager.popMatrix();
 
         GlStateManager.enableLighting();
-
     }
 
 }
